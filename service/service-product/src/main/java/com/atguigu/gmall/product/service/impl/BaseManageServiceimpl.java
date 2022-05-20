@@ -9,7 +9,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @Author Echo
@@ -43,6 +47,16 @@ public class BaseManageServiceimpl implements BaseManageService {
 
     @Autowired
     private BaseCategoryViewMapper baseCategoryViewMapper;
+
+    @Autowired
+    private SpuSaleAttrMapper spuSaleAttrMapper;
+
+    @Autowired
+    private SkuSaleAttrValueMapper skuSaleAttrValueMapper;
+
+    @Autowired
+    private SpuPosterMapper spuPosterMapper;
+
     //获取一级分类数据
     @Override
     public List<BaseCategory1> getCategory1() {
@@ -152,6 +166,52 @@ public class BaseManageServiceimpl implements BaseManageService {
         return baseCategoryViewMapper.selectById(category3Id);
     }
 
+    @Override
+    public BigDecimal getSkuPrice(Long skuId) {
+        SkuInfo skuInfo = skuInfoMapper.selectById(skuId);
+        if (skuId != null){
+            return skuInfo.getPrice();
+        }
+        return new BigDecimal(0);
+    }
+
+
+    //根据spuId,skuId 获取销售属性数据
+    @Override
+    public List<SpuSaleAttr> getSpuSaleAttrListCheckBySku(Long skuId, Long spuId) {
+
+        return spuSaleAttrMapper.getSpuSaleAttrListCheckBySku(skuId,spuId);
+    }
+
+    //根据spuId 获取到销售属性值Id 与skuId 组成的数据集
+    @Override
+    public Map getSkuValueIdsMap(Long spuId) {
+        Map<Object,Object> map = new HashMap<>();
+
+        List<Map> mapList = skuSaleAttrValueMapper.getSkuValueIdsMap(spuId);
+        if (!CollectionUtils.isEmpty(mapList)){
+            for (Map skuMap : mapList) {
+                map.put(skuMap.get("value_ids"),skuMap.get("sku_id"));
+            }
+        }
+
+        return map;
+    }
+
+    @Override
+    public List<SpuPoster> findSpuPosterBySpuId(Long spuId) {
+        QueryWrapper<SpuPoster> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("spu_id",spuId);
+        List<SpuPoster> spuPosters = spuPosterMapper.selectList(queryWrapper);
+        return spuPosters;
+    }
+
+    @Override
+    public List<BaseAttrInfo> getAttrList(Long skuId) {
+        return baseAttrInfoMapper.getAttrList(skuId);
+    }
+
+
     //根据平台属性id，查询平台属性值集合
     public List<BaseAttrValue> getAttrValueList(Long attrId) {
         QueryWrapper<BaseAttrValue> queryWrapper = new QueryWrapper<>();
@@ -159,6 +219,8 @@ public class BaseManageServiceimpl implements BaseManageService {
         List<BaseAttrValue> baseAttrValueList = baseAttrValueMapper.selectList(queryWrapper);
         return baseAttrValueList;
     }
+
+
 }
 
 

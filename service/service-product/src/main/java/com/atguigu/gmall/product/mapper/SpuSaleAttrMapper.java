@@ -12,4 +12,6 @@ import java.util.List;
 @Repository
 public interface SpuSaleAttrMapper extends BaseMapper<SpuSaleAttr> {
     List<SpuSaleAttr> selectSpuSaleAttr(@Param("spuId") Long spuId);
+
+    List<SpuSaleAttr> getSpuSaleAttrListCheckBySku(Long skuId, Long spuId);
 }

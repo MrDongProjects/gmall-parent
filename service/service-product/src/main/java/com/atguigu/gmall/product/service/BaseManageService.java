@@ -2,7 +2,9 @@ package com.atguigu.gmall.product.service;
 
 import com.atguigu.gmall.model.product.*;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @Author Echo
@@ -27,4 +29,15 @@ public interface BaseManageService {
     SkuInfo getSkuInfo(Long skuId);
 
     BaseCategoryView getCategoryView(Long category3Id);
+
+    BigDecimal getSkuPrice(Long skuId);
+
+
+    List<SpuSaleAttr> getSpuSaleAttrListCheckBySku(Long skuId, Long spuId);
+
+    Map getSkuValueIdsMap(Long spuId);
+
+    List<SpuPoster> findSpuPosterBySpuId(Long spuId);
+
+    List<BaseAttrInfo> getAttrList(Long skuId);
 }

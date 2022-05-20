@@ -4,13 +4,17 @@
 
     <resultMap id="SpuSaleAttr" type="com.atguigu.gmall.model.product.SpuSaleAttr" autoMapping="true">
         <id column="id" property="id"></id>
-        <collection property="spuSaleAttrValueList" ofType="com.atguigu.gmall.model.product.SpuSaleAttrValue" autoMapping="true">
+        <collection property="spuSaleAttrValueList" ofType="com.atguigu.gmall.model.product.SpuSaleAttrValue"
+                    autoMapping="true">
             <id property="id" column="sale_attr_value_id"></id>
         </collection>
     </resultMap>
 
     <sql id="spuSaleAttr">
-        saa.id,
+        saa
+        .
+        id
+        ,
        saa.spu_id,
        saa.base_sale_attr_id,
        saa.sale_attr_name,
@@ -19,12 +23,31 @@
     </sql>
 
     <select id="selectSpuSaleAttr" resultMap="SpuSaleAttr">
-select
-<include refid="spuSaleAttr"></include>
+        select
+        <include refid="spuSaleAttr"></include>
         from
         spu_sale_attr saa inner join spu_sale_attr_value ssav
         on saa.spu_id = ssav.spu_id and saa.base_sale_attr_id = ssav.base_sale_attr_id
         where saa.spu_id = #{spuId}
+    </select>
+
+
+    <select id="getSpuSaleAttrListCheckBySku" resultMap="SpuSaleAttr">
+        SELECT sa.id,
+               sa.spu_id,
+               sa.sale_attr_name,
+               sa.base_sale_attr_id,
+               sv.id                        sale_attr_value_id,
+               sv.sale_attr_value_name,
+               skv.sku_id,
+               IF(skv.sku_id IS NULL, 0, 1) is_checked
+        FROM spu_sale_attr sa
+                 INNER JOIN spu_sale_attr_value sv
+                            ON sa.spu_id = sv.spu_id AND sa.base_sale_attr_id = sv.base_sale_attr_id
+                 LEFT JOIN sku_sale_attr_value skv ON skv.sale_attr_value_id = sv.id AND skv.sku_id = #{skuId}
+        WHERE sa.spu_id = #{spuId}
+        ORDER BY sv.base_sale_attr_id, sv.id
+
     </select>
 
 </mapper>
