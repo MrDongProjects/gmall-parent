@@ -1,5 +1,7 @@
 package com.atguigu.gmall.product.client;
 
+import com.alibaba.fastjson.JSONObject;
+import com.atguigu.gmall.common.result.Result;
 import com.atguigu.gmall.model.product.*;
 import com.atguigu.gmall.product.client.impl.ProductDegradeFeignClient;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -70,5 +72,19 @@ public interface ProductFeignClient {
     @GetMapping("/api/product/inner/getAttrList/{skuId}")
     public List<BaseAttrInfo> getAttrList(@PathVariable Long skuId);
 
+    /**
+     * 获取首页分类数据
+     * @return
+     */
+    @GetMapping("/api/product/getBaseCategoryList")
+    public List<JSONObject> getBaseCategoryList();
+
+    /**
+     *根据品牌Id 获取品牌数据
+     * @param tmId
+     * @return
+     */
+    @GetMapping("/api/product/inner/getTrademark/{tmId}")
+    public BaseTrademark getTrademark(@PathVariable Long tmId);
 
 }

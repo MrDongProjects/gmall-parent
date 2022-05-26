@@ -8,5 +8,12 @@
       <jdbc-url>jdbc:mysql://192.168.50.177:3306/gmall_product</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="gmall_user" uuid="3beef81d-7668-4acf-9ee6-2f930a99ad89">
+      <driver-ref>mysql.8</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
+      <jdbc-url>jdbc:mysql://192.168.50.177:3306/gmall_user</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>

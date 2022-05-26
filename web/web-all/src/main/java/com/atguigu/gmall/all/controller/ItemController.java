@@ -1,4 +1,4 @@
-package com.atguigu.gmall.web.controller;
+package com.atguigu.gmall.all.controller;
 
 import com.atguigu.gmall.common.result.Result;
 import com.atguigu.gmall.item.client.ItemFeignClient;

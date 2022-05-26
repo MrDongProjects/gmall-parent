@@ -1,5 +1,6 @@
 package com.atguigu.gmall.product.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.atguigu.gmall.model.product.*;
 
 import java.math.BigDecimal;
@@ -40,4 +41,9 @@ public interface BaseManageService {
     List<SpuPoster> findSpuPosterBySpuId(Long spuId);
 
     List<BaseAttrInfo> getAttrList(Long skuId);
+
+    List<JSONObject> getBaseCategoryList();
+
+
+    BaseTrademark getTrademark(Long tmId);
 }

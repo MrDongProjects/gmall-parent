@@ -27,8 +27,8 @@ public class BaseTrademarkController {
     //根据id查询详情 /admin/product/baseTrademark/get/{id}
     @GetMapping("get/{id}")
     public Result getTrademark(@PathVariable Long id){
-        baseTrademarkService.getById(id);
-        return Result.ok();
+        BaseTrademark tradeMark = baseTrademarkService.getById(id);
+        return Result.ok(tradeMark);
     }
 
     //保存信息 /admin/product/baseTrademark/save
