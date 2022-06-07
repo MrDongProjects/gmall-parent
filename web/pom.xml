@@ -55,6 +55,12 @@
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.atguigu.gmall</groupId>
+            <artifactId>service-activity-client</artifactId>
+            <version>1.0</version>
+        </dependency>
+
     </dependencies>
 
 </project>

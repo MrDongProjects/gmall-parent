@@ -15,6 +15,7 @@
       <module>server-gateway</module>
       <module>service-client</module>
       <module>web</module>
+    <module>ware-manage</module>
   </modules>
   <packaging>pom</packaging>
 

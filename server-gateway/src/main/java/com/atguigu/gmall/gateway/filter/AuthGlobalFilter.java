@@ -30,106 +30,194 @@ import java.util.List;
 @Component
 public class AuthGlobalFilter implements GlobalFilter {
 
-    @Autowired
-    private RedisTemplate redisTemplate;
+    @Value("${authUrls.url}")
+    private String authUrls;
 
     //匹配路径工具
     AntPathMatcher antPathMatcher = new AntPathMatcher();
 
-    @Value("${authUrls.url}")
-    private String authUrls;
+    @Autowired
+    private RedisTemplate redisTemplate;
 
+    /**
+     * 实现资源的过滤，用户的认证
+     *
+     * @param exchange
+     * @param chain
+     * @return http://passport.gmall.com/login.html?originUrl=http://www.gmall.com/
+     * http://api.gmall.com/api/user/passport/login
+     * getPath()::api/user/passport/login
+     */
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+
         //获取请求对象
         ServerHttpRequest request = exchange.getRequest();
-        //获取url
-        String path = request.getURI().getPath();
-        //如果是内部接口,则网关拦截不允许外部访问
-        if (antPathMatcher.match("/**/inner/**", path)){
+        //获取请求的资源路径
+        String path = request.getURI().getPath();//login.html
+
+        //如果是内部接口，拦截不允许访问 /**/inner/**
+        if (antPathMatcher.match("/**/inner/**", path)) {
+            ServerHttpResponse response = exchange.getResponse();
+
+            return out(response, ResultCodeEnum.PERMISSION);
+        }
+
+        //校验用户是否登录
+        String userId = getUserId(request);
+        //判断结果是否被盗用
+        if ("-1".equals(userId)) {
+
             ServerHttpResponse response = exchange.getResponse();
             return out(response, ResultCodeEnum.PERMISSION);
         }
-        //获取用户Id
-        String userId = getUserId(request);
-        //token被盗用
-        if ("-1".equals(userId)){
-            ServerHttpResponse response = exchange.getResponse();
-            return out(response,ResultCodeEnum.PERMISSION);
-        }
-        //用户登陆认证
-        //api接口,异步请求,校验用户必须登陆
-        if (antPathMatcher.match("/api/**/auth/**", path)){
-            if (StringUtils.isEmpty(userId)){
-                ServerHttpResponse response = exchange.getResponse();
-                return out(response,ResultCodeEnum.LOGIN_AUTH);
-            }
-        }
+        //api认证接口
+        if (antPathMatcher.match("/api/**/auth/**", path)) {
+            //判断是否的登录
+            if (StringUtils.isEmpty(userId)) {
 
-        //验证url白名单
-        for (String authUrl : authUrls.split(",")) {
-            //当前的url包含登陆的控制器域名,但是用户id为空
-            if (path.indexOf(authUrl)!=-1 && StringUtils.isEmpty(userId)){
                 ServerHttpResponse response = exchange.getResponse();
-                //303状态吗表示由于请求对应的资源存在另一个URI,应使用重定向获取请求的资源
-                response.setStatusCode(HttpStatus.SEE_OTHER);
-                response.getHeaders().set(HttpHeaders.LOCATION, "http://www.gmall.com/login.html?originUrl=" + request.getURI());
-                //重定向到登陆
-                return response.setComplete();
+                return out(response, ResultCodeEnum.LOGIN_AUTH);
             }
+
         }
-        //将userid传递给后端
-        if (!StringUtils.isEmpty(userId)){
-            request.mutate().header("userId", userId).build();
-            //将现在的request变成exchange对象
+        //验证白名单 authUrls  trade.html,myOrder.html ,list.html
+        for (String authUrl : authUrls.split(",")) {
+
+            //第一个当前请求资源路径包含白名单中的资源
+            //第二个 用户未登录
+            if(path.indexOf(authUrl)!=-1&&StringUtils.isEmpty(userId)){
+
+                ServerHttpResponse response = exchange.getResponse();
+                //设置重定向 状态码
+                response.setStatusCode(HttpStatus.SEE_OTHER);
+                //重定向的路径
+                response.getHeaders().set(HttpHeaders.LOCATION,
+                        "http://www.gmall.com/login.html?originUrl="+request.getURI());
+
+                //重定向
+                return  response.setComplete();
+            }
+
+
+        }
+        //获取临时userTempId
+        String userTempId=getUserTempId(request);
+
+
+
+        //设置携带userId 和userTempId
+        if(!StringUtils.isEmpty(userId)||!StringUtils.isEmpty(userTempId)){
+
+
+            if(!StringUtils.isEmpty(userTempId)){
+                request.mutate().header("userTempId",userTempId);
+            }
+            if(!StringUtils.isEmpty(userId)){
+
+                request.mutate().header("userId",userId);
+            }
+
+
+            //放行
             return chain.filter(exchange.mutate().request(request).build());
         }
+
+        //最终放行
         return chain.filter(exchange);
     }
 
     /**
-     * 获取当前登录用户id
+     * 获取临时id
      * @param request
-     * @return token有可能从头信息中传递携带
-     *      有可能从cookie中携带
-     *      1.已经登录 userId
-     *      2.未登录 “”
-     *      3.被盗用 -1
+     * @return
      */
-    private String getUserId(ServerHttpRequest request) {
-        String token = null;
-        List<String> tokenList = request.getHeaders().get("userId");
-        if (!CollectionUtils.isEmpty(tokenList)){
-            token = tokenList.get(0);
-        }else {
-            //从cookies中获取
-            //获取所有的cookies
+    private String getUserTempId(ServerHttpRequest request) {
+        //定义变量接收userTemId
+        String userTempId="";
+        //从头信息中获取
+        List<String> userTempIdList = request.getHeaders().get("userTempId");
+        //判断
+        if(!CollectionUtils.isEmpty(userTempIdList)){
+            userTempId =userTempIdList.get(0);
+        }else{
+            //尝试从cookie中获取
             MultiValueMap<String, HttpCookie> cookies = request.getCookies();
-            //获取指定的cookie
-            HttpCookie tokenCookies = cookies.getFirst("token");
-            if (tokenCookies != null){
-                token = URLDecoder.decode(tokenCookies.getValue());
+            //获取userTempId
+            HttpCookie cookie = cookies.getFirst("userTempId");
+            //判断
+            if(cookie!=null){
 
-
+                userTempId= URLDecoder.decode(cookie.getValue());
             }
 
         }
+
+
+        return userTempId;
+    }
+
+    /**
+     * 根据token获取用户userId
+     *
+     * @param request
+     * @return token有可能从头信息中传递携带
+     * 有可能从cookie中携带
+     * 1.已经登录 userId
+     * 2.未登录 “”
+     * 3.被盗用 -1
+     */
+    private String getUserId(ServerHttpRequest request) {
+
+        //定义变量，接收token
+        String token = null;
+        //获取token
+        List<String> tokenList = request.getHeaders().get("token");
+        //判断
+        if (!CollectionUtils.isEmpty(tokenList)) {
+
+            token = tokenList.get(0);
+        } else {
+            //从cookie中获取
+            //获取所有的cookie
+            MultiValueMap<String, HttpCookie> cookies = request.getCookies();
+            //获取指定的cookie
+            HttpCookie tokenCookie = cookies.getFirst("token");
+            //判断
+            if (tokenCookie != null) {
+                //885328e18890417482542f854e80ea98  //asdfsdafdsafewtredare543543256436^*(&^*7
+                token = URLDecoder.decode(tokenCookie.getValue());
+            }
+
+        }
+
+
         //根据token从redis中获取数据
-        if (!StringUtils.isEmpty(token)){
-            String tokenStr = (String) redisTemplate.opsForValue().get("user:login:" +token);
-            //转换数据类型
+
+        if (!StringUtils.isEmpty(token)) {
+
+            String tokenStr = (String) redisTemplate.opsForValue().get("user:login:" + token);
+            //转换类型
             JSONObject jsonObject = JSONObject.parseObject(tokenStr);
             //校验ip
             String ip = jsonObject.getString("ip");
             //获取本次请求的ip
-            String gatwayIpAddress = IpUtil.getGatwayIpAddress(request);
+            String curIp = IpUtil.getGatwayIpAddress(request);
+
             //判断是否盗用了token
-            if (!ip.equals(gatwayIpAddress)){
+            if (!ip.equals(curIp)) {
+
                 return "-1";
-            }else {
+            } else {
+
                 return jsonObject.getString("userId");
             }
+
+
         }
+
+
+        //token没有获取，直接返回空字符串
         return "";
     }
 
