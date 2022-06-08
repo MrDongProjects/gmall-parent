@@ -11,14 +11,6 @@
 
     <artifactId>service-payment-client</artifactId>
 
-    <dependencies>
-        <dependency>
-            <groupId>com.atguigu.gmall</groupId>
-            <artifactId>service-payment-client</artifactId>
-            <version>1.0</version>
-        </dependency>
-
-    </dependencies>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>

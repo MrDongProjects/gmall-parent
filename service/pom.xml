@@ -86,11 +86,11 @@
             <optional>true</optional>
         </dependency>
 
-        <!--&lt;!&ndash;链路追踪&ndash;&gt;-->
-        <!--<dependency>-->
-        <!--<groupId>org.springframework.cloud</groupId>-->
-        <!--<artifactId>spring-cloud-starter-zipkin</artifactId>-->
-        <!--</dependency>-->
+<!--        &lt;!&ndash;链路追踪&ndash;&gt;-->
+<!--        <dependency>-->
+<!--        <groupId>org.springframework.cloud</groupId>-->
+<!--        <artifactId>spring-cloud-starter-zipkin</artifactId>-->
+<!--        </dependency>-->
 
     </dependencies>
 
